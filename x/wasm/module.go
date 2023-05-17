@@ -23,7 +23,6 @@ import (
 	"github.com/classic-terra/core/x/wasm/client/cli"
 	"github.com/classic-terra/core/x/wasm/client/rest"
 	"github.com/classic-terra/core/x/wasm/keeper"
-	"github.com/classic-terra/core/x/wasm/simulation"
 	"github.com/classic-terra/core/x/wasm/types"
 )
 
@@ -177,7 +176,6 @@ func (am AppModule) EndBlock(ctx sdk.Context, _ abci.RequestEndBlock) []abci.Val
 
 // GenerateGenesisState creates a randomized GenState of the wasm module.
 func (AppModule) GenerateGenesisState(simState *module.SimulationState) {
-	simulation.RandomizedGenState(simState)
 }
 
 // ProposalContents returns all the wasm content functions used to
@@ -188,19 +186,14 @@ func (am AppModule) ProposalContents(_ module.SimulationState) []simtypes.Weight
 
 // RandomizedParams creates randomized wasm param changes for the simulator.
 func (AppModule) RandomizedParams(r *rand.Rand) []simtypes.ParamChange {
-	return simulation.ParamChanges(r)
+	return nil
 }
 
 // RegisterStoreDecoder registers a decoder for wasm module's types
 func (am AppModule) RegisterStoreDecoder(sdr sdk.StoreDecoderRegistry) {
-	sdr[types.StoreKey] = simulation.NewDecodeStore(am.cdc)
 }
 
 // WeightedOperations returns the all the wasm module operations with their respective weights.
 func (am AppModule) WeightedOperations(simState module.SimulationState) []simtypes.WeightedOperation {
-	protoCdc := codec.NewProtoCodec(am.registry)
-	return simulation.WeightedOperations(
-		simState.AppParams, simState.Cdc,
-		am.accountKeeper, am.bankKeeper, am.keeper, protoCdc,
-	)
+	return nil
 }

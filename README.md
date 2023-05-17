@@ -1,3 +1,8 @@
+# This Terra Classic fork
+
+This was forked to remove a number of dependencies that conflict with other cosmos chains.  This package can then more easily be used
+as a definition for types.  Is it not able to do anything else.
+
 ## What is Terra Classic?
 
 **[Terra](https://terra.money)** is a public, open-source blockchain protocol that provides fundamental infrastructure for a decentralized economy and enables open participation in the creation of new financial primitives to power the innovation of money.

@@ -1,9 +1,6 @@
 package ante
 
 import (
-	channelkeeper "github.com/cosmos/ibc-go/modules/core/04-channel/keeper"
-	ibcante "github.com/cosmos/ibc-go/modules/core/ante"
-
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	cosmosante "github.com/cosmos/cosmos-sdk/x/auth/ante"
@@ -21,7 +18,6 @@ type HandlerOptions struct {
 	TreasuryKeeper     TreasuryKeeper
 	SignModeHandler    signing.SignModeHandler
 	SigGasConsumer     cosmosante.SignatureVerificationGasConsumer
-	IBCChannelKeeper   channelkeeper.Keeper
 	DistributionKeeper distributionkeeper.Keeper
 	GovKeeper          govkeeper.Keeper
 }
@@ -71,7 +67,6 @@ func NewAnteHandler(options HandlerOptions) (sdk.AnteHandler, error) {
 		cosmosante.NewSigGasConsumeDecorator(options.AccountKeeper, sigGasConsumer),
 		NewSigVerificationDecorator(options.AccountKeeper, options.SignModeHandler),
 		cosmosante.NewIncrementSequenceDecorator(options.AccountKeeper),
-		ibcante.NewAnteDecorator(options.IBCChannelKeeper),
 		NewMinInitialDepositDecorator(options.GovKeeper, options.TreasuryKeeper),
 	), nil
 }

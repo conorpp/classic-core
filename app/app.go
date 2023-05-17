@@ -1,7 +1,6 @@
 package app
 
 import (
-	"fmt"
 	"io"
 	stdlog "log"
 	"net/http"
@@ -17,9 +16,6 @@ import (
 	"github.com/tendermint/tendermint/libs/log"
 	tmos "github.com/tendermint/tendermint/libs/os"
 	dbm "github.com/tendermint/tm-db"
-
-	ibctransfertypes "github.com/cosmos/ibc-go/modules/apps/transfer/types"
-	ibcchanneltypes "github.com/cosmos/ibc-go/modules/core/04-channel/types"
 
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	"github.com/cosmos/cosmos-sdk/client"
@@ -200,7 +196,6 @@ func NewTerraApp(
 			TreasuryKeeper:     app.TreasuryKeeper,
 			SigGasConsumer:     ante.DefaultSigVerificationGasConsumer,
 			SignModeHandler:    encodingConfig.TxConfig.SignModeHandler(),
-			IBCChannelKeeper:   app.IBCKeeper.ChannelKeeper,
 			DistributionKeeper: app.DistrKeeper,
 			GovKeeper:          app.GovKeeper,
 		},
@@ -226,49 +221,6 @@ func (app *TerraApp) Name() string { return app.BaseApp.Name() }
 
 // BeginBlocker application updates every begin block
 func (app *TerraApp) BeginBlocker(ctx sdk.Context, req abci.RequestBeginBlock) abci.ResponseBeginBlock {
-	if ctx.ChainID() == core.ColumbusChainID && ctx.BlockHeight() == core.SwapDisableForkHeight { // Make min spread to one to disable swap
-		params := app.MarketKeeper.GetParams(ctx)
-		params.MinStabilitySpread = sdk.OneDec()
-		app.MarketKeeper.SetParams(ctx, params)
-
-		// Disable IBC Channels
-		channelIDs := []string{
-			"channel-1",  // Osmosis
-			"channel-49", // Crescent
-			"channel-20", // Juno
-		}
-		for _, channelID := range channelIDs {
-			channel, found := app.IBCKeeper.ChannelKeeper.GetChannel(ctx, ibctransfertypes.PortID, channelID)
-			if !found {
-				panic(fmt.Sprintf("%s not found", channelID))
-			}
-
-			channel.State = ibcchanneltypes.CLOSED
-			app.IBCKeeper.ChannelKeeper.SetChannel(ctx, ibctransfertypes.PortID, channelID, channel)
-		}
-	}
-	if ctx.ChainID() == core.ColumbusChainID && ctx.BlockHeight() == core.SwapEnableForkHeight { // Re-enable IBCs
-		// Enable IBC Channels
-		channelIDs := []string{
-			"channel-1",  // Osmosis
-			"channel-49", // Crescent
-			"channel-20", // Juno
-		}
-		for _, channelID := range channelIDs {
-			channel, found := app.IBCKeeper.ChannelKeeper.GetChannel(ctx, ibctransfertypes.PortID, channelID)
-			if !found {
-				panic(fmt.Sprintf("%s not found", channelID))
-			}
-
-			channel.State = ibcchanneltypes.OPEN
-			app.IBCKeeper.ChannelKeeper.SetChannel(ctx, ibctransfertypes.PortID, channelID, channel)
-		}
-	}
-
-	// trigger SetModuleVersionMap in upgrade keeper at the VersionMapEnableHeight
-	if ctx.ChainID() == core.ColumbusChainID && ctx.BlockHeight() == core.VersionMapEnableHeight {
-		app.UpgradeKeeper.SetModuleVersionMap(ctx, app.mm.GetVersionMap())
-	}
 
 	return app.mm.BeginBlock(ctx, req)
 }

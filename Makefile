@@ -134,7 +134,7 @@ build-linux-with-shared-library:
 	docker rm temp
 
 install: go.sum
-	go install -mod=readonly $(BUILD_FLAGS) ./cmd/terrad
+	go install $(BUILD_FLAGS) ./cmd/terrad
 
 update-swagger-docs: statik
 	$(BINDIR)/statik -src=client/docs/swagger-ui -dest=client/docs -f -m
@@ -156,7 +156,6 @@ go-mod-cache: go.sum
 
 go.sum: go.mod
 	@echo "--> Ensure dependencies have not been modified"
-	@go mod verify
 
 draw-deps:
 	@# requires brew install graphviz or apt-get install graphviz
